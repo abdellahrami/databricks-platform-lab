@@ -1,0 +1,40 @@
+# Databricks Asset Bundle: infrastructure-as-code for Databricks *workloads*
+# (jobs, pipelines, notebooks), deployed from Git by CLI or CI.
+# Terraform (see terraform/) is typically used for the *platform* underneath
+# (workspaces, metastore, catalogs, IAM, networking).
+#
+#   databricks bundle validate
+#   databricks bundle deploy -t dev
+#   databricks bundle run orders_medallion_job -t dev
+#
+# Auth comes from DATABRICKS_HOST / DATABRICKS_TOKEN env vars or a ~/.databrickscfg profile.
+
+bundle:
+  name: databricks-platform-lab
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for the lab tables
+    default: workspace
+  schema:
+    description: Schema for the lab tables
+    default: tecsys_lab
+
+targets:
+  dev:
+    # development mode: resources prefixed with "[dev <user>]", schedules paused,
+    # deployed under your user folder. Safe for experimenting.
+    mode: development
+    default: true
+
+  prod:
+    # production mode: no prefixes, validation that you aren't deploying a local
+    # unversioned copy, intended to run as a service principal in real life.
+    mode: production
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      schema: tecsys_lab_prod

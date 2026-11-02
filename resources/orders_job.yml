@@ -1,0 +1,55 @@
+resources:
+  jobs:
+    orders_medallion_job:
+      name: orders-medallion-job
+
+      # Job parameters are pushed down to every notebook task as widget values
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+
+      # No cluster spec on the tasks => serverless jobs compute.
+      # On a classic workspace you'd add a job_clusters block (node type, autoscale,
+      # spot/on-demand mix, policy_id) and reference it with job_cluster_key.
+
+      tasks:
+        - task_key: setup
+          notebook_task:
+            notebook_path: ../notebooks/00_setup.py
+
+        - task_key: produce_cdc_batch
+          depends_on:
+            - task_key: setup
+          notebook_task:
+            notebook_path: ../notebooks/01_produce_cdc_batch.py
+
+        - task_key: medallion_notebook
+          depends_on:
+            - task_key: produce_cdc_batch
+          notebook_task:
+            notebook_path: ../notebooks/03_medallion_structured_streaming.py
+          max_retries: 1
+
+        - task_key: declarative_pipeline
+          depends_on:
+            - task_key: produce_cdc_batch
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.orders_cdc_pipeline.id}
+
+        - task_key: data_quality_checks
+          depends_on:
+            - task_key: medallion_notebook
+            - task_key: declarative_pipeline
+          notebook_task:
+            notebook_path: ../notebooks/06_data_quality_checks.py
+
+      # Paused automatically in dev mode
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: America/Toronto
+        pause_status: PAUSED
+
+      # email_notifications:
+      #   on_failure: [you@example.com]

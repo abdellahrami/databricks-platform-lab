@@ -1,0 +1,14 @@
+resources:
+  pipelines:
+    orders_cdc_pipeline:
+      name: orders-cdc-pipeline
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      continuous: false        # triggered: process what's new, then stop
+      channel: CURRENT
+      configuration:
+        lab.source_path: /Volumes/${var.catalog}/${var.schema}/raw/orders
+      libraries:
+        - notebook:
+            path: ../src/pipeline/orders_pipeline.py

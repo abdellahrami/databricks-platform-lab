@@ -1,0 +1,12 @@
+.databricks/
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.auto.tfvars
+__pycache__/
+.pytest_cache/
+.venv/
+spark-warehouse/
+metastore_db/
+derby.log
