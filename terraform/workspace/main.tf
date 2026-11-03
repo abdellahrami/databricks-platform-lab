@@ -38,7 +38,7 @@ resource "databricks_schema" "lab" {
   catalog_name = var.catalog
   name         = var.schema
   comment      = "Managed by Terraform (${var.env})"
-  properties   = {
+  properties = {
     env        = var.env
     managed_by = "terraform"
   }
