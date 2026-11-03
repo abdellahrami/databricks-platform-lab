@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
-      - run: terraform fmt -check -recursive terraform/
+      - run: terraform fmt -check -recursive -diff terraform/
 
   # Manual deploy so CI stays green until you add the secrets:
   #   Settings -> Secrets and variables -> Actions -> DATABRICKS_HOST, DATABRICKS_TOKEN
